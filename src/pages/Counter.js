@@ -23,6 +23,8 @@ export default class extends PureComponent {
 
   async loadCounted() {
     const counted = await AsyncStorage.getItem(ALREADY_COUNTED);
+
+    console.log('restoring state', counted);
     this.setState({
       counted : parseInt(counted) || 0
     });
@@ -34,7 +36,10 @@ export default class extends PureComponent {
 
   componentWillUpdate(nextProps, nextState) {
     if (this.state.counted !== nextState.counted) {
-      AsyncStorage.setItem(ALREADY_COUNTED, nextState.counted)
+      console.log('saving state', nextState.counted);
+      AsyncStorage.setItem(ALREADY_COUNTED, `` + nextState.counted)
+      .then(() => console.log('saved', nextState.counted))
+      .catch(console.log.bind(console));
     }
   }
 
