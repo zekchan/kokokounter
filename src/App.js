@@ -6,10 +6,6 @@ import Calculator from './pages/Calculator';
 import Counter from './pages/Counter';
 
 type ChoosenPage = 'counter' | 'calculator';
-const PAGES = {
-  counter :    Counter,
-  calculator : Calculator
-};
 
 export default class App extends PureComponent {
   state: {
@@ -24,7 +20,6 @@ export default class App extends PureComponent {
 
   render() {
     const { activeTab }  = this.state;
-    const PageComponent  = PAGES[activeTab];
 
     return (
       <Container>
@@ -38,7 +33,10 @@ export default class App extends PureComponent {
                        size={100}
             />
           </View>
-          <PageComponent/>
+          {activeTab === 'counter' ?
+            <Counter/> :
+            <Calculator/>
+          }
         </Content>
         <Footer >
           <FooterTab>
@@ -62,7 +60,7 @@ export default class App extends PureComponent {
 }
 const style = StyleSheet.create({
   logo : {
-    flexDirection: 'row',
+    flexDirection :  'row',
     justifyContent : 'center'
   }
 });
