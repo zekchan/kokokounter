@@ -1,6 +1,6 @@
 // @flow
 import React, { PureComponent } from 'react';
-import { View, Text, AsyncStorage, StyleSheet } from 'react-native';
+import { View, Text, AsyncStorage, StyleSheet, Alert } from 'react-native';
 import { H1, List, ListItem, InputGroup, Input, Button } from 'native-base';
 import memoize from 'lodash/memoize';
 
@@ -24,7 +24,6 @@ export default class extends PureComponent {
   async loadCounted() {
     const counted = await AsyncStorage.getItem(ALREADY_COUNTED);
 
-    console.log('restoring state', counted);
     this.setState({
       counted : parseInt(counted) || 0
     });
@@ -36,10 +35,7 @@ export default class extends PureComponent {
 
   componentWillUpdate(nextProps, nextState) {
     if (this.state.counted !== nextState.counted) {
-      console.log('saving state', nextState.counted);
-      AsyncStorage.setItem(ALREADY_COUNTED, `` + nextState.counted)
-      .then(() => console.log('saved', nextState.counted))
-      .catch(console.log.bind(console));
+      AsyncStorage.setItem(ALREADY_COUNTED, `` + nextState.counted);
     }
   }
 
@@ -49,7 +45,10 @@ export default class extends PureComponent {
       return;
     }
     this.setState({
-      counted : this.state.counted + proteine
+      counted :    this.state.counted + proteine,
+      proteine :   '',
+      weight :     '',
+      percentage : ''
     });
   };
   handleReducePress      = () => {
@@ -61,9 +60,29 @@ export default class extends PureComponent {
       counted : this.state.counted - proteine
     });
   };
-  handleClearPress       = () => this.setState({
-    counted : 0
-  });
+  handleClearPress       = () => {
+    Alert.alert(
+      'Уверены что хотите очистить счетчик?',
+      '',
+      [
+        {
+          text :    'Да',
+          onPress : () => this.setState({
+            counted :    0,
+            proteine :   '',
+            weight :     '',
+            percentage : ''
+          })
+        },
+        {
+          text :  'Нет',
+          style : 'cancel'
+        },
+      ],
+      { cancelable : true }
+    );
+
+  };
   handleProteineChange   = proteine => this.setState({
     proteine,
     weight :     '',
@@ -80,8 +99,12 @@ export default class extends PureComponent {
       [field] : value
     }, this.calculate)
   });
+  handleTemplatePress    = memoize(proteine => () => this.setState({
+    proteine,
+    weight :     '',
+    percentage : ''
+  }));
   calculate              = () => {
-    console.log(this.state);
     this.setState({
       proteine : '' + this.state.percentage * this.state.weight / 100
     });
@@ -129,37 +152,44 @@ export default class extends PureComponent {
             </InputGroup>
           </ListItem>
         </List>
-
-        <Button
-          onPress={this.handleAddPress}
-          style={[style.margins, style.center]}
-        >
-          Добавить
-        </Button>
-        <Button
-          onPress={this.handleReducePress}
-          style={style.center}
-        >
-          Убавить
-        </Button>
-        <Button
-          onPress={this.handleClearPress}
-          style={style.center}
-          danger
-        >
-          Сбросить
-        </Button>
+        <View style={style.line}>
+          <Button
+            onPress={this.handleTemplatePress('25')}
+          >
+            Коктейль
+          </Button>
+        </View>
+        <View style={style.line}>
+          <Button
+            onPress={this.handleAddPress}
+            success
+          >
+            Добавить
+          </Button>
+          <Button
+            onPress={this.handleReducePress}
+            warning
+          >
+            Убавить
+          </Button>
+        </View>
+        <View style={style.line}>
+          <Button
+            onPress={this.handleClearPress}
+            danger
+          >
+            Сбросить
+          </Button>
+        </View>
       </View>
     )
   }
 }
 
 const style = StyleSheet.create({
-  margins : {
-    marginTop :    20,
-    marginBottom : 20
-  },
-  center :  {
-    alignSelf : 'center'
+  line : {
+    flexDirection :  'row',
+    alignItems :     'center',
+    justifyContent : 'space-around'
   }
 });
